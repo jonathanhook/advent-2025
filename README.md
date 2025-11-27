@@ -1,4 +1,4 @@
-# Advent of code 2025
+# Advent of Code 2025
 
 My attempts at Advent of Code 2025, written in ``Python``. Will I make it to the end?
 
