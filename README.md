@@ -23,11 +23,11 @@ def task(data: str) -> int:
     return 0
 
 
-def test_example():
+def test_example() -> None:
     assert task(read_file("test.txt")) == 0
 
 
-def test_real():
+def test_real() -> None:
     assert task(get_data(day=1, year=2024)) == 0
 ```
 
