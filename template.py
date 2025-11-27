@@ -19,4 +19,4 @@ def test_example() -> None:
 
 
 def test_real() -> None:
-    assert task(get_data(day=1, year=2024)) == 0
+    assert task(get_data(day=1, year=2025)) == 0
