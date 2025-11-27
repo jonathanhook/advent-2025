@@ -33,4 +33,6 @@ def test_real() -> None:
 
 ## Run
 
-This year I'm going to use ``pytest`` to run the tasks. No more commenting out in the main method for me. 
+This year I'm going to use ``pytest`` to run the tasks. No more commenting out in the main method for me.
+
+The code can be run from the test runner or inline.
