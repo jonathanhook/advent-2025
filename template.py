@@ -20,4 +20,5 @@ def test_example() -> None:
 
 def test_real() -> None:
     result = task(get_data(day=1, year=2025))
+    print(result)
     # assert result == 0
