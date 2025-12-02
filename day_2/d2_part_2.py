@@ -32,6 +32,7 @@ def task(data: str) -> int:
                             invalid = invalid and True
                         else:
                             invalid = False
+                            break
 
                     if invalid:
                         total += i
