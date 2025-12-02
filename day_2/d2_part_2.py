@@ -28,9 +28,7 @@ def task(data: str) -> int:
                     for k in range(1, j):
                         current = asString[partSize * k : partSize * (k + 1)]
 
-                        if first == current:
-                            invalid = invalid and True
-                        else:
+                        if first != current:
                             invalid = False
                             break
 
