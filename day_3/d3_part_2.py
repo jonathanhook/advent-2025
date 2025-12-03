@@ -10,27 +10,14 @@ def parse_input(data: str) -> list:
     return [[int(x) for x in c] for c in data.split("\n")]
 
 
-def find_best_position(pos, remaining):
-    # method goal: find the best path of all and return it
-
-    # check the possible path from this point onwards
-    # find the one that's the biggest number and return that
-
-    length = len(remaining)
+def find_best_position(ptr, pos, data):
+    if pos <= 0:
+        return 0
 
     bestValue = 0
-
-    start = length - 1
-    end = 12 - pos - 2
-
-    print(f"{end}:{start}")
-
-    for i in range(length - 1, 12 - pos - 2, -1):  # 12 - pos - 2
-        value = remaining[i] * 10**pos
-
-        nextPos = pos + 1
-        nextRemaining = remaining[: length - nextPos]
-        value += find_best_position(nextPos, nextRemaining)
+    for i in range(ptr, -1, -1):
+        value = data[i] * 10 ** (12 - pos)
+        value += find_best_position(i - 1, pos - 1, data)
 
         if value > bestValue:
             bestValue = value
@@ -41,13 +28,15 @@ def find_best_position(pos, remaining):
 def task(data: str) -> int:
     batteries = parse_input(data)
 
-    num = find_best_position(0, batteries[0])
+    total = 0
+    for b in batteries:
+        total += find_best_position(len(b) - 1, 12, b)
 
-    return 0
+    return total
 
 
 def test_example() -> None:
-    assert task(read_file("day_3/test.txt")) == 357
+    assert task(read_file("day_3/test.txt")) == 3121910778619
 
 
 def test_real() -> None:
