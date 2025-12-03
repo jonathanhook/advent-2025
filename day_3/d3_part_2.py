@@ -10,14 +10,22 @@ def parse_input(data: str) -> list:
     return [[int(x) for x in c] for c in data.split("\n")]
 
 
-def find_best_position(ptr, pos, data):
+def find_best_position(
+    ptr: int, pos: int, data: list[int], seen: dict[tuple[int, int], int]
+) -> int:
     if pos <= 0:
         return 0
 
     bestValue = 0
     for i in range(ptr, -1, -1):
         value = data[i] * 10 ** (12 - pos)
-        value += find_best_position(i - 1, pos - 1, data)
+
+        if (i - 1, pos - 1) in seen:
+            value += seen[(i - 1, pos - 1)]
+        else:
+            result = find_best_position(i - 1, pos - 1, data, seen)
+            value += result
+            seen[(i - 1, pos - 1)] = result
 
         if value > bestValue:
             bestValue = value
@@ -30,7 +38,8 @@ def task(data: str) -> int:
 
     total = 0
     for b in batteries:
-        total += find_best_position(len(b) - 1, 12, b)
+        seen = {}
+        total += find_best_position(len(b) - 1, 12, b, seen)
 
     return total
 
@@ -42,8 +51,4 @@ def test_example() -> None:
 def test_real() -> None:
     result = task(get_data(day=3, year=2025))
     print(result)
-    assert result == 17766
-
-
-# start at the end
-# compute the
+    assert result == 176582889354075
