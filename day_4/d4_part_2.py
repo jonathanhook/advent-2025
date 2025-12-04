@@ -61,4 +61,4 @@ def test_example() -> None:
 def test_real() -> None:
     result = task(get_data(day=4, year=2025))
     print(result)
-    assert result == 1569
+    assert result == 9280
