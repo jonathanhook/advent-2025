@@ -10,13 +10,13 @@ def parse_input(data: str) -> tuple[set[tuple[int, int]], list[int]]:
     inputParts = data.split("\n\n")
 
     fresh = set()
-    for l in inputParts[0].splitlines():
-        part = l.split("-")
+    for line in inputParts[0].splitlines():
+        part = line.split("-")
         fresh.add((int(part[0]), int(part[1])))
 
     available = []
-    for l in inputParts[1].splitlines():
-        available.append(int(l))
+    for line in inputParts[1].splitlines():
+        available.append(int(line))
 
     return (fresh, available)
 
