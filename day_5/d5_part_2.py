@@ -17,13 +17,6 @@ def parse_input(data: str) -> list[tuple[int, int]]:
     return fresh
 
 
-def in_ranges(item: int, ranges: list[tuple[int, int]]) -> bool:
-    for r in ranges:
-        if item >= r[0] and item <= r[1]:
-            return True
-    return False
-
-
 def combine_ranges(fresh: list[tuple[int, int]]) -> list[tuple[int, int]]:
     i = 0
     while i < len(fresh) - 1:
