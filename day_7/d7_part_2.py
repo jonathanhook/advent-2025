@@ -15,56 +15,67 @@ def print_grid(grid: list) -> None:
         print("", file=f)
         for i in range(len(grid)):
             for j in range(len(grid[0])):
-                print(grid[i][j], end="", file=f)
+                print(grid[i][j], end="\t", file=f)
             print("", file=f)
 
 
-def find_start(grid: list) -> tuple[int, int]:
+def get_result(grid: list) -> int:
+    total = 0
     for i in range(0, len(grid[0])):
-        if grid[0][i] == "S":
-            return (i, 0)
-    return (0, 0)
+        val = grid[len(grid) - 1][i]
+        if val != ".":
+            total += int(val)
+
+    return total
 
 
-def traverse(pos: tuple[int, int], grid: list, visited: list, splits: set) -> None:
-    x = pos[0]
-    y = pos[1]
-
-    if x < 0 or x >= len(grid[0]) or y < 0 or y >= len(grid):
-        return
-
-    visited.append((x, y))
-    val = grid[y][x]
-
-    if val == "^":
-        if tuple(visited) not in splits:
-            splits.add(tuple(visited))
-
-            traverse((x - 1, y), grid, visited.copy(), splits)
-            traverse((x + 1, y), grid, visited.copy(), splits)
+def parse_val(val: str) -> int:
+    if val == "." or val == "^":
+        return 0
+    elif val == "S":
+        return 1
     else:
-        traverse((x, y + 1), grid, visited, splits)
+        return int(val)
+
+
+def solve(grid: list) -> int:
+    for row in range(1, len(grid)):
+        for col in range(0, len(grid[0])):
+            if grid[row][col] == "^":
+                continue
+
+            val = 0
+            # above
+            val += parse_val(grid[row - 1][col])
+
+            # above-left
+            if col > 0 and grid[row][col - 1] == "^":
+                val += parse_val(grid[row - 1][col - 1])
+
+            # above-right
+            if col < len(grid[0]) - 2 and grid[row][col + 1] == "^":
+                val += parse_val(grid[row - 1][col + 1])
+
+            if val > 0:
+                grid[row][col] = str(val)
+
+    return 0
 
 
 def task(data: str) -> int:
     grid = parse_input(data)
-    start = find_start(grid)
-
-    visited = []
-    splits = set()
-    traverse(start, grid, visited, splits)
+    solve(grid)
 
     print_grid(grid)
 
-    return len(splits) + 1
+    return get_result(grid)
 
 
 def test_example() -> None:
-    print("GELLO")
     assert task(read_file("day_7/test.txt")) == 40
 
 
 def test_real() -> None:
     result = task(get_data(day=7, year=2025))
     print(result)
-    # assert result == 1619
+    assert result == 23607984027985
