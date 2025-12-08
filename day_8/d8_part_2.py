@@ -102,7 +102,7 @@ def make_connections(points: list, pairs: list) -> int:
     return 0
 
 
-def task(data: str, connections: int) -> int:
+def task(data: str) -> int:
     points = parse_input(data)
     pairs = compute_pair_distances(points)
     result = make_connections(points, pairs)
@@ -110,10 +110,10 @@ def task(data: str, connections: int) -> int:
 
 
 def test_example() -> None:
-    assert task(read_file("day_8/test.txt"), 10) == 25272
+    assert task(read_file("day_8/test.txt")) == 25272
 
 
 def test_real() -> None:
-    result = task(get_data(day=8, year=2025), 1000)
+    result = task(get_data(day=8, year=2025))
     print(result)
     assert result == 59039696
