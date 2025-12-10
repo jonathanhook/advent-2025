@@ -45,6 +45,7 @@ def bfs(machine: Machine) -> int:
     queue = deque()
     queue.append((0, machine, -1))
 
+    seen = set()
     while len(queue) > 0:
         current = queue.popleft()
         pressesSoFar = current[0]
@@ -53,6 +54,11 @@ def bfs(machine: Machine) -> int:
 
         if toPress != -1:
             currentMachine.press_button(toPress)
+
+        hash = tuple(currentMachine.state)
+        if hash in seen:
+            continue
+        seen.add(hash)
 
         if currentMachine.is_started():
             return pressesSoFar
@@ -81,4 +87,4 @@ def test_example() -> None:
 def test_real() -> None:
     result = task(get_data(day=10, year=2025))
     print(result)
-    # assert result == 0
+    assert result == 538
