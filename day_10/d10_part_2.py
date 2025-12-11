@@ -1,22 +1,5 @@
-import copy
-from collections import deque
-
 from aocd import get_data
-
-
-class Machine:
-    def __init__(self, target: list[int], buttons: list[list[int]]):
-        self.target: list[int] = target
-        self.buttons: list[list[int]] = buttons
-        self.state: list[int] = [0] * len(self.target)
-
-    def press_button(self, id: int) -> None:
-        toPress = self.buttons[id]
-        for b in toPress:
-            self.state[b] += 1
-
-    def is_started(self) -> bool:
-        return self.state == self.target
+from pulp import LpInteger, LpMinimize, LpProblem, LpVariable, lpSum
 
 
 def read_file(filename: str) -> str:
@@ -24,7 +7,7 @@ def read_file(filename: str) -> str:
         return f.read()
 
 
-def parse_input(data: str) -> list[Machine]:
+def parse_input(data: str) -> list[tuple]:
     machines = []
     for line in data.splitlines():
         parts = line.split(" ")
@@ -32,54 +15,49 @@ def parse_input(data: str) -> list[Machine]:
         target = [
             int(x) for x in parts[-1].replace("{", "").replace("}", "").split(",")
         ]
-
         buttons = []
         for b in parts[1:-1]:
             schematic = [int(x) for x in b.replace("(", "").replace(")", "").split(",")]
             buttons.append(schematic)
 
-        machines.append(Machine(target, buttons))
+        machines.append((target, buttons))
 
     return machines
-
-
-def bfs(machine: Machine) -> int:
-    queue = deque()
-    queue.append((0, machine, -1))
-
-    seen = set()
-    while len(queue) > 0:
-        current = queue.popleft()
-        pressesSoFar = current[0]
-        currentMachine = current[1]
-        toPress = current[2]
-
-        if toPress != -1:
-            currentMachine.press_button(toPress)
-
-        hash = tuple(currentMachine.state)
-        if hash in seen:
-            continue
-        seen.add(hash)
-
-        if currentMachine.is_started():
-            return pressesSoFar
-
-        for bId in range(len(currentMachine.buttons)):
-            machineCopy = copy.deepcopy(currentMachine)
-            queue.append((pressesSoFar + 1, machineCopy, bId))
-
-    return -1
 
 
 def task(data: str) -> int:
     machines = parse_input(data)
 
-    result = 0
+    totalPresses = 0
     for m in machines:
-        result += bfs(m)
+        target = m[0]
+        buttons = m[1]
 
-    return result
+        prob = LpProblem("Day 10 Part 2", LpMinimize)
+
+        x = [
+            LpVariable(f"x{i}", lowBound=0, cat=LpInteger) for i in range(len(buttons))
+        ]
+        prob += lpSum(x)
+
+        for i in range(len(target)):
+            involvedButtons = []
+            for j in range(len(buttons)):
+                b = buttons[j]
+                if i in b:
+                    involvedButtons.append(j)
+
+            prob += lpSum([x[j] for j in involvedButtons]) == target[i]
+
+        prob.solve()
+
+        presses = 0
+        for v in prob.variables():
+            if v.varValue is not None:
+                presses += int(v.varValue)
+        totalPresses += presses
+
+    return totalPresses
 
 
 def test_example() -> None:
@@ -89,4 +67,4 @@ def test_example() -> None:
 def test_real() -> None:
     result = task(get_data(day=10, year=2025))
     print(result)
-    assert result == 538
+    assert result == 20298
