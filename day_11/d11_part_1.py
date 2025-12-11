@@ -44,18 +44,29 @@ def build_graph(nodeData: list) -> Node:
     return nodes["you"]
 
 
+def find_unique_paths(current: Node) -> int:
+    if current.id == "out":
+        return 1
+
+    total = 0
+    for child in current.connections:
+        total += find_unique_paths(child)
+
+    return total
+
+
 def task(data: str) -> int:
     nodeData = parse_input(data)
     you = build_graph(nodeData)
-
-    return 0
+    count = find_unique_paths(you)
+    return count
 
 
 def test_example() -> None:
-    assert task(read_file("day_11/test.txt")) == 0
+    assert task(read_file("day_11/test.txt")) == 5
 
 
 def test_real() -> None:
     result = task(get_data(day=11, year=2025))
     print(result)
-    # assert result == 0
+    assert result == 571
