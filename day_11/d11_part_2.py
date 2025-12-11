@@ -44,24 +44,29 @@ def build_graph(nodeData: list) -> Node:
     return nodes["svr"]
 
 
-def find_unique_paths(current: Node, fft: bool, dac: bool) -> int:
-    if current.id == "out" and fft and dac:
-        return 1
+def find_unique_paths(current: Node, fft: bool, dac: bool, seen: dict) -> int:
+    if current.id == "out":
+        return 1 if (fft and dac) else 0
+
+    _fft = True if current.id == "fft" else fft
+    _dac = True if current.id == "dac" else dac
+
+    key = (current.id, _fft, _dac)
+    if key in seen:
+        return seen[key]
 
     total = 0
     for child in current.connections:
-        fft = True if current.id == "fft" else fft
-        dac = True if current.id == "dac" else dac
+        total += find_unique_paths(child, _fft, _dac, seen)
 
-        total += find_unique_paths(child, fft, dac)
-
+    seen[key] = total
     return total
 
 
 def task(data: str) -> int:
     nodeData = parse_input(data)
     svr = build_graph(nodeData)
-    count = find_unique_paths(svr, False, False)
+    count = find_unique_paths(svr, False, False, {})
     return count
 
 
@@ -72,4 +77,4 @@ def test_example() -> None:
 def test_real() -> None:
     result = task(get_data(day=11, year=2025))
     print(result)
-    assert result == 571
+    assert result == 511378159390560
