@@ -46,7 +46,7 @@ def build_graph(nodeData: list) -> Node:
 
 def find_unique_paths(current: Node, fft: bool, dac: bool, seen: dict) -> int:
     if current.id == "out":
-        return 1 if (fft and dac) else 0
+        return 1 if fft and dac else 0
 
     _fft = True if current.id == "fft" else fft
     _dac = True if current.id == "dac" else dac
