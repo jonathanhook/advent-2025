@@ -1,4 +1,4 @@
-import copy
+import sys
 
 from aocd import get_data
 
@@ -7,12 +7,19 @@ class Shape:
     def __init__(self, id: int, grid: list[list[int]]) -> None:
         self.id: int = id
         self.grid: list[list[int]] = grid
+        self.size = count_non_zero(self.grid)
 
 
 class Region:
     def __init__(self, x: int, y: int, needed: dict[int, int]) -> None:
         self.grid: list[list[int]] = [[0 for _ in range(y)] for _ in range(x)]
         self.needed: dict[int, int] = needed
+        self.spaceLeft = len(self.grid) * len(self.grid[0])
+
+    def update_space_left(self, shape: Shape, add: bool) -> None:
+        self.spaceLeft = (
+            self.spaceLeft + shape.size if add else self.spaceLeft - shape.size
+        )
 
 
 def read_file(filename: str) -> str:
@@ -37,8 +44,8 @@ def parse_input(data: str) -> tuple[list[Shape], list[Region]]:
     for p in parts[-1].splitlines():
         subparts = p.split(" ")
         dims = subparts[0].replace(":", "").split("x")
-        x = int(dims[0])
-        y = int(dims[1])
+        x = int(dims[1])
+        y = int(dims[0])
 
         needed = {}
         for i in range(len(subparts[1:])):
@@ -49,13 +56,22 @@ def parse_input(data: str) -> tuple[list[Shape], list[Region]]:
     return (shapes, regions)
 
 
+def print_grid(region: Region) -> None:
+    with open("day_12/debug.txt", "w") as f:
+        for i in range(len(region.grid)):
+            for j in range(len(region.grid[0])):
+                val = region.grid[i][j]
+                print(val if val != 0 else ".", end="", file=f)
+            print("", file=f)
+
+
 def place(row: int, col: int, region: Region, toPlace: list[list[int]], s: int) -> None:
     for r in range(len(toPlace)):
         for c in range(len(toPlace[0])):
             nr = row + r
             nc = col + c
             if toPlace[r][c] > 0:
-                region.grid[nr][nc] = s
+                region.grid[nr][nc] = s + 1
 
 
 def can_place(row: int, col: int, region: Region, toPlace: list[list[int]]) -> bool:
@@ -76,15 +92,34 @@ def can_place(row: int, col: int, region: Region, toPlace: list[list[int]]) -> b
     return True
 
 
+def count_non_zero(grid: list[list[int]]) -> int:
+    return sum(1 for row in grid for cell in row if cell != 0)
+
+
+def abandon_path(region: Region, shapes: list[Shape]) -> bool:
+    spaceNeeded = 0
+    for n in region.needed:
+        if region.needed[n] > 0:
+            spaceNeeded += shapes[n].size * region.needed[n]
+
+        if spaceNeeded > region.spaceLeft:
+            return True
+
+    return False
+
+
 def backtracking(p: int, s: int, r: int, region: Region, shapes: list[Shape]) -> bool:
     # if solution found
     if sum(region.needed.values()) == 0:
         return True
 
+    # check if path should be abandoned
+    if abandon_path(region, shapes):
+        return False
+
     # if run off the end of the array
     width = len(region.grid[0])
     height = len(region.grid)
-
     if p >= width * height:
         return False
 
@@ -107,7 +142,10 @@ def backtracking(p: int, s: int, r: int, region: Region, shapes: list[Shape]) ->
 
         # otherwise place
         place(row, col, region, toPlace, s)
+        region.update_space_left(shapes[s], True)
         region.needed[s] -= 1
+
+        # print_grid(region)
 
     # if placement succeeded try next states
     p += 1
@@ -125,7 +163,8 @@ def backtracking(p: int, s: int, r: int, region: Region, shapes: list[Shape]) ->
 
     # undo placement if one happened (i.e. not a skip)
     if s != -1:
-        place(row, col, region, toPlace, 0)
+        place(row, col, region, toPlace, -1)
+        region.update_space_left(shapes[s], False)
         region.needed[s] += 1
 
     return False
@@ -133,9 +172,13 @@ def backtracking(p: int, s: int, r: int, region: Region, shapes: list[Shape]) ->
 
 def task(data: str) -> int:
     (shapes, regions) = parse_input(data)
-    result = backtracking(-1, -1, -1, regions[2], shapes)
 
-    return 0
+    result = 0
+    for r in regions:
+        if backtracking(-1, -1, -1, r, shapes):
+            result += 1
+
+    return result
 
 
 def test_example() -> None:
@@ -143,6 +186,7 @@ def test_example() -> None:
 
 
 def test_real() -> None:
-    result = task(get_data(day=1, year=2025))
+    sys.setrecursionlimit(15000)
+    result = task(get_data(day=12, year=2025))
     print(result)
-    # assert result == 0
+    assert result == 492
