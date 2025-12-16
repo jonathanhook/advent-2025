@@ -49,21 +49,49 @@ def parse_input(data: str) -> tuple[list[Shape], list[Region]]:
     return (shapes, regions)
 
 
-def check_position(p: int, s: int, r: int, region: Region, shapes: list[Shape]) -> bool:
-    # all the tiles are placed we have a solution (may need to be after placement?)
+def place(row: int, col: int, region: Region, toPlace: list[list[int]], s: int) -> None:
+    for r in range(len(toPlace)):
+        for c in range(len(toPlace[0])):
+            nr = row + r
+            nc = col + c
+            if toPlace[r][c] > 0:
+                region.grid[nr][nc] = s
+
+
+def can_place(row: int, col: int, region: Region, toPlace: list[list[int]]) -> bool:
+    width = len(region.grid[0])
+    height = len(region.grid)
+
+    for r in range(len(toPlace)):
+        for c in range(len(toPlace[0])):
+            nr = row + r
+            nc = col + c
+
+            if nr < 0 or nr >= height or nc < 0 or nc >= width:
+                return False
+
+            if toPlace[r][c] > 0 and region.grid[nr][nc] > 0:
+                return False
+
+    return True
+
+
+def backtracking(p: int, s: int, r: int, region: Region, shapes: list[Shape]) -> bool:
+    # if solution found
     if sum(region.needed.values()) == 0:
         return True
 
-    # if reached the end return fail
+    # if run off the end of the array
     width = len(region.grid[0])
     height = len(region.grid)
+
     if p >= width * height:
         return False
 
-    # skip if initial or already placed
+    # try and place unless initial or skip
     col = p % width
     row = p // width
-    if p >= 0 and s >= 0 and region.grid[row][col] == 0:
+    if s != -1:
         toPlace = shapes[s].grid
 
         # rotate
@@ -73,53 +101,41 @@ def check_position(p: int, s: int, r: int, region: Region, shapes: list[Shape]) 
                 for i in range(len(toPlace[0]))
             ]
 
-        # check then if ok first pass, then if second pass reached place
-        for place in [False, True]:
-            for r in range(len(toPlace)):
-                for c in range(len(toPlace[0])):
-                    nr = row + r
-                    nc = col + c
+        # if can't place return false
+        if not can_place(row, col, region, toPlace):
+            return False
 
-                    # if out of bounds fail
-                    if nr < 0 or nr >= height or nc < 0 or nc >= width:
-                        # return 0 to prune branch if placement fails?
-                        return False
-
-                    if toPlace[r][c] > 0:
-                        # if something already at this point fail
-                        if region.grid[nr][nc] > 0:
-                            # return 0 to prune branch if placement fails?
-                            return False
-
-                        if place:
-                            region.grid[nr][nc] = s
-
-        # mark a shape as placed by decrementing needed
+        # otherwise place
+        place(row, col, region, toPlace, s)
         region.needed[s] -= 1
 
-    # spawn the next tests
+    # if placement succeeded try next states
     p += 1
     for n in region.needed:
         if region.needed[n] > 0:
             for rot in range(4):
-                result = check_position(p, n, rot, copy.deepcopy(region), shapes)
+                result = backtracking(p, n, rot, region, shapes)
                 if result:
-                    return result
+                    return True
 
-    # skip cell
-    result = check_position(p, -1, -1, region, shapes)
-    return result
+    # finally try not placing anything at this positon
+    result = backtracking(p, -1, -1, region, shapes)
+    if result:
+        return True
+
+    # undo placement if one happened (i.e. not a skip)
+    if s != -1:
+        place(row, col, region, toPlace, 0)
+        region.needed[s] += 1
+
+    return False
 
 
 def task(data: str) -> int:
     (shapes, regions) = parse_input(data)
+    result = backtracking(-1, -1, -1, regions[2], shapes)
 
-    result = 0
-    for r in regions:
-        if check_position(-1, -1, -1, r, shapes):
-            result += 1
-
-    return result
+    return 0
 
 
 def test_example() -> None:
