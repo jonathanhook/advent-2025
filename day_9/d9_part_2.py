@@ -75,6 +75,19 @@ def find_perimeter(coords: list) -> list:
     return lines
 
 
+def check_inside(point: tuple, perimeter: list, coords: list) -> bool:
+    if point in coords:
+        return True
+
+    ray = (point, (0, 0))
+    intersections = 0
+    for p in perimeter:
+        if lines_cross(ray, p):
+            intersections += 1
+
+    return intersections % 2 != 0
+
+
 def check_allowed(corners: list, perimeter: list) -> bool:
     toCheck = [
         (corners[0], corners[1]),
@@ -82,7 +95,6 @@ def check_allowed(corners: list, perimeter: list) -> bool:
         (corners[2], corners[3]),
         (corners[0], corners[0]),
     ]
-    # UP TO HERE... CHECK WERE ACTUALLY CHECKING THE RIGHT LINES
 
     for t in toCheck:
         for p in perimeter:
@@ -108,15 +120,25 @@ def task(data: str) -> int:
 
             corners = [
                 (a[0], a[1]),
-                (b[0], b[1]),
-                (a[1], b[0]),
                 (a[0], b[1]),
+                (b[0], b[1]),
+                (b[0], a[1]),
             ]
+
+            inside = True
+            for c in [corners[1], corners[3]]:
+                if not check_inside(c, lines, coords):
+                    inside = False
+                    break
+
+            if not inside:
+                continue
 
             x = abs(a[0] - b[0]) + 1
             y = abs(a[1] - b[1]) + 1
             area = x * y
             if check_allowed(corners, lines) and area > max:
+                # if area > max:
                 max = area
 
     return max
